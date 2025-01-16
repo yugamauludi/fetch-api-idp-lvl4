@@ -78,11 +78,11 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
-          <div className="text-sm text-center">
+          {/* <div className="text-sm text-center">
             <a href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
               Belum punya akun? Daftar di sini
             </a>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
