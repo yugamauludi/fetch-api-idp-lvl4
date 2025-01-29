@@ -1,121 +1,149 @@
 import { useEffect, useState } from "react";
-import ModalAdd from "./components/ModalAdd";
-import ModalDetail from "./components/ModalDetail";
+import RekeningModal from "./components/ModalAdd";
 import Swal from "sweetalert2";
+import ModalDetail from "./components/ModalDetail";
 
-export default function Pegawai() {
-  const [dataPegawai, setDataPegawai] = useState([
+export default function Rekening() {
+  const [dataRekening, setDataRekening] = useState([
     {
       id: 1,
       name: "John Doe",
-      nik: "081264781564",
-      tanggalLahir: "17/07/1990",
-      npwp: 663554861,
-      alamat: "Developer",
-      status: "aktif",
+      norek: "09812938912",
+      jenis: "BCA",
+    },
+    {
+      id: 2,
+      name: "Bob Johnson",
+      norek: "3123212441244",
+      jenis: "CIMB Niaga",
     },
   ]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingData, setEditingData] = useState(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [detailData, setDetailData] = useState(null);
   const [, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      const formdata = new FormData();
       const requestOptions = {
         method: "GET",
+        body: formdata,
         redirect: "follow",
       };
 
       try {
         const response = await fetch(
-          "http://localhost:9090/v1/karyawan/list?page=0&size=10",
+          "http://localhost:9090/v1/rekening/list?page=0&size=10",
           requestOptions
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
         }
         const result = await response.json();
-
         if (result.data && result.data.content) {
           const formattedData = result.data.content.map((item) => ({
             id: item.id,
-            name: item.name,
-            nik: item.karyawanDetail?.nik || "-",
-            tanggalLahir: item.dob.split("T")[0],
-            npwp: item.karyawanDetail?.npwp || "-",
-            alamat: item.address,
-            status: item.status,
+            name: item.karyawan.nama,
+            norek: item.karyawan.karyawanDetail.norek,
+            jenis: item.training.norek,
           }));
-          setDataPegawai(formattedData);
+          setDataRekening(formattedData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        Swal.fire("Error", "Failed to fetch data from server", "error");
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, []);
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingEmployee, setEditingEmployee] = useState(null);
 
   const handleAddData = async (newData) => {
     try {
       const payload = {
-        id: isEditMode ? editingEmployee.id : undefined,
-        name: newData.name,
-        dob: newData.tanggalLahir,
-        status: newData.status || "active",
-        address: newData.alamat,
-        karyawanDetail: {
-          nik: newData.nik,
-          npwp: newData.npwp,
-        },
+        id: editingData ? editingData.id : undefined,
+        nama: newData.name,
+        jenis: newData.jenis,
+        norek: newData.norek,
+        alamat: newData.alamat,
+        karyawan: { id: Number(newData.karyawanId) },
       };
-      
+
       const requestOptions = {
-        method: isEditMode ? "PUT" : "POST",
+        method: editingData ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       };
 
-      const url = isEditMode
-        ? "{{host}}/v1/karyawan/update"
-        : "{{host}}/v1/karyawan/save";
+      const url = editingData
+        ? "{{host}}/v1/rekening/update"
+        : "{{host}}/v1/rekening/save";
 
       const response = await fetch(url, requestOptions);
       if (!response.ok) {
-        if (isEditMode) {
-          setDataPegawai(
-            dataPegawai.map((emp) =>
-              emp.id === editingEmployee.id
-                ? { ...newData, id: editingEmployee.id }
-                : emp
+        if (editingData) {
+          setDataRekening(
+            dataRekening.map((employee) =>
+              employee.id === editingData.id
+                ? { ...employee, ...newData }
+                : employee
             )
           );
         } else {
-          setDataPegawai([
-            ...dataPegawai,
-            { ...newData, id: dataPegawai.length + 1 },
+          setDataRekening([
+            ...dataRekening,
+            { ...newData, id: dataRekening.length + 1 },
           ]);
         }
       }
-      setIsModalOpen(false);
-      setIsEditMode(false);
-      setEditingEmployee(null);
+      setEditingData(null);
     } catch (error) {
       console.error("Error saving data:", error);
     }
   };
 
-  const handleDeleteClick = async (employee) => {
+  const handleEditClick = (employee) => {
+    setEditingData(employee);
+    setIsModalOpen(true);
+  };
+
+  const handleDetailClick = (data) => {
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+
+    fetch(`http://localhost:9090/v1/rekening/${data.id}`, requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.data) {
+          const formattedData = {
+            id: result.data.id,
+            name: result.data.karyawan.name,
+            NIK: result.data.karyawan.karyawanDetail.nik,
+            pelatihan: result.data.training.tema,
+          };
+          setDetailData(formattedData);
+        }
+        setIsDetailModalOpen(true);
+      })
+      .catch((error) => {
+        setDetailData(data);
+        setIsDetailModalOpen(true);
+      });
+  };
+
+  const handleDeleteClick = async (data) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: `You are about to delete ${employee.name}'s data. This action cannot be undone!`,
+      text: `You are about to delete ${data.name}'s data. This action cannot be undone!`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -134,52 +162,38 @@ export default function Pegawai() {
         };
 
         const response = await fetch(
-          `{{host}}/v1/karyawan/delete/${employee.id}`,
+          `http://localhost:9090/v1/karyawan/delete/${data.id}`,
           requestOptions
         );
 
-        if (!response.ok) {
-          setDataPegawai((prevData) =>
-            prevData.filter((data) => data.id !== employee.id)
+        if (response.ok) {
+          // ✅ Jika API sukses, hapus dari state
+          setDataRekening((prevData) =>
+            prevData.filter((item) => item.id !== data.id)
           );
+          Swal.fire(
+            "Deleted!",
+            `${data.name}'s data has been deleted.`,
+            "success"
+          );
+        } else {
+          throw new Error("Failed to delete from API");
         }
+      } catch (error) {
+        console.error("Error deleting data:", error);
+
+        // ✅ Jika API gagal, hapus secara lokal
+        setDataRekening((prevData) =>
+          prevData.filter((item) => item.id !== data.id)
+        );
 
         Swal.fire(
-          "Deleted!",
-          `${employee.name}'s data has been deleted.`,
-          "success"
+          "Warning!",
+          "Could not delete from API, but removed locally.",
+          "warning"
         );
-      } catch (error) {
-        console.error("Error deleting employee:", error);
-        Swal.fire("Error!", "Failed to delete employee.", "error");
       }
     }
-  };
-
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [detailData, setDetailData] = useState(null);
-  const handleDetailClick = (employee) => {
-    const requestOptions = {
-      method: "GET",
-      redirect: "follow",
-    };
-
-    fetch(`localhost:9090/v1/karyawan/${employee.id}`, requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        setDetailData(result.data);
-        setIsDetailModalOpen(true);
-      })
-      .catch((error) => {
-        setDetailData(employee);
-        setIsDetailModalOpen(true);
-      });
-  };
-
-  const handleEditClick = (employee) => {
-    setEditingEmployee(employee);
-    setIsEditMode(true);
-    setIsModalOpen(true);
   };
 
   return (
@@ -189,11 +203,12 @@ export default function Pegawai() {
     >
       <div className="py-8">
         <div className="mb-4 flex justify-between items-center">
-          <h2 className="text-2xl font-semibold leading-tight">
-            Employee List
-          </h2>
+          <h2 className="text-2xl font-semibold leading-tight">Class List</h2>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingData(null);
+              setIsModalOpen(true);
+            }}
             className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg px-4 py-2"
           >
             Tambah Data
@@ -207,16 +222,13 @@ export default function Pegawai() {
                   No
                 </th>
                 <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Name
+                  Nama
                 </th>
                 <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  NIK
+                  Jenis
                 </th>
                 <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Alamat
-                </th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Status
+                  Norek
                 </th>
                 <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Action
@@ -224,7 +236,7 @@ export default function Pegawai() {
               </tr>
             </thead>
             <tbody>
-              {dataPegawai.map((employee, index) => (
+              {dataRekening.map((employee, index) => (
                 <tr key={employee.id}>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     <div className="flex items-center">
@@ -237,22 +249,17 @@ export default function Pegawai() {
                   </td>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     <p className="text-gray-900 whitespace-no-wrap">
-                      {employee?.content?.name || employee.name}
+                      {employee.name}
                     </p>
                   </td>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     <p className="text-gray-900 whitespace-no-wrap">
-                      {employee?.content?.karyawanDetail?.nik || employee.nik}
+                      {employee.jenis}
                     </p>
                   </td>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                     <p className="text-gray-900 whitespace-no-wrap">
-                      {employee?.content?.address || employee.alamat}
-                    </p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">
-                      {employee?.content?.status || employee.status}
+                      {employee.norek}
                     </p>
                   </td>
                   <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
@@ -282,10 +289,13 @@ export default function Pegawai() {
         </div>
       </div>
       {isModalOpen && (
-        <ModalAdd
-          onClose={() => setIsModalOpen(false)}
+        <RekeningModal
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingData(null);
+          }}
           onAddData={handleAddData}
-          existingData={editingEmployee}
+          existingData={editingData}
         />
       )}
       {isDetailModalOpen && (

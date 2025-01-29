@@ -10,8 +10,9 @@ export default function DetailModal({ onClose, detailData }) {
                 <h2 className="text-2xl font-bold mb-4">Detail Class Data</h2>
                 {detailData && (
                     <div>
-                        <p className="mb-2"><strong>Pelatihan :</strong> {detailData.tema}</p>
-                        <p className="mb-2"><strong>Nama Pengajar:</strong> {detailData.pengajar}</p>
+                        <p className="mb-2"><strong>Name:</strong> {detailData.name}</p>
+                        <p className="mb-2"><strong>NIK:</strong> {detailData.NIK}</p>
+                        <p className="mb-2"><strong>Pelatihan:</strong> {detailData.pelatihan}</p>
                     </div>
                 )}
             </div>

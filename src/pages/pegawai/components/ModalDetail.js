@@ -11,11 +11,11 @@ export default function DetailModal({ onClose, detailData }) {
                 {detailData && (
                     <div>
                         <p className="mb-2"><strong>Name:</strong> {detailData.name}</p>
-                        <p className="mb-2"><strong>Alamat:</strong> {detailData.alamat}</p>
-                        <p className="mb-2"><strong>Tanggal Lahir:</strong> {detailData.tanggalLahir}</p>
-                        <p className="mb-2"><strong>NIK:</strong> {detailData.nik}</p>
-                        <p className="mb-2"><strong>NIK:</strong> {detailData.npwp}</p>
-                        <p className="mb-2"><strong>NIK:</strong> {detailData.status}</p>
+                        <p className="mb-2"><strong>Alamat:</strong> {detailData?.address ?? detailData.alamat}</p>
+                        <p className="mb-2"><strong>Tanggal Lahir:</strong> {detailData?.dob ?? detailData.tanggalLahir}</p>
+                        <p className="mb-2"><strong>NIK:</strong> {detailData?.karyawanDetail?.nik ?? detailData.nik}</p>
+                        <p className="mb-2"><strong>NPWP:</strong> {detailData?.karyawanDetail?.npwp ?? detailData.npwp}</p>
+                        <p className="mb-2"><strong>Status:</strong> {detailData?.status ?? detailData.status}</p>
                     </div>
                 )}
             </div>

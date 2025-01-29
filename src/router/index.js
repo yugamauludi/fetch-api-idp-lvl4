@@ -4,6 +4,7 @@ import Login from "../pages/Login";
 import Pegawai from "../pages/pegawai";
 import Kelas from "../pages/kelas";
 import Pelatihan from "../pages/pelatihan";
+import Rekening from "../pages/rekening";
 
 const PrivateRoute = ({ element }) => {
   const isLogin = JSON.parse(localStorage.getItem("isLogin"));
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "/pelatihan",
         element: <PrivateRoute element={<Pelatihan/>} />,
+      },
+      {
+        path: "/rekening",
+        element: <PrivateRoute element={<Rekening/>} />,
       },
       {
         path: "/",
