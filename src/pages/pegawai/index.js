@@ -49,7 +49,6 @@ export default function Pegawai() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-        Swal.fire("Error", "Failed to fetch data from server", "error");
       } finally {
         setIsLoading(false);
       }
